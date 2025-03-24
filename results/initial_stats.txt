@@ -1,0 +1,4 @@
+Design,Area,Delay,QoR
+simple_spi_orig.bench,613.13,185.99,113405
+pci_orig.bench,13074.12,465.75,6079410
+aes_secworks_orig.bench,27728.00,645.13,17884560

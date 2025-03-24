@@ -1,0 +1,1 @@
+st; rs; rw; rf; rs; rs; rwz; rf; st; rfz; b; rfz; rs; rf; b; f; st; rw; f; b; 
