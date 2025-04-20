@@ -1,0 +1,42 @@
+Top 3 Best Recipes for simple_spi_orig:
+Rank 1:
+Recipe: st; rw; rfz; f; rf; b; b; rfz; rwz; rf; rs; f; rwz; b; st; st; rfz; rwz; rf; rw;
+Area: 526.38, Delay: 181.70, QoR: 95206
+
+Rank 2:
+Recipe: st; rs; rwz; rwz; rf; b; b; b; rf; rfz; b; b; rs; rw; b; f; rf; rwz; f; rwz;
+Area: 532.78, Delay: 180.03, QoR: 95760
+
+Rank 3:
+Recipe: b; rfz; rf; b; f; rfz; b; rf; rf; rwz; rw; rs; st; rs; rwz; rwz; rw; rfz; rw; rwz;
+Area: 524.79, Delay: 183.82, QoR: 95892
+
+----------------------------------------
+Top 3 Best Recipes for pci_orig:
+Rank 1:
+Recipe: b; rs; b; rf; rwz; f; rfz; rwz; rf; rf; rwz; rwz; b; rs; st; rw; st; rs; rw; b;
+Area: 11595.67, Delay: 395.85, QoR: 4580025
+
+Rank 2:
+Recipe: b; st; rs; rfz; rs; rwz; rfz; st; rfz; f; rwz; f; rwz; rs; rwz; rs; b; st; rw; st;
+Area: 11513.43, Delay: 402.98, QoR: 4628226
+
+Rank 3:
+Recipe: b; b; f; b; rwz; b; rf; b; rw; rw; rfz; rw; rwz; rwz; rwz; b; b; b; b; b;
+Area: 11341.16, Delay: 409.80, QoR: 4638469
+
+----------------------------------------
+Top 3 Best Recipes for aes_secworks_orig:
+Rank 1:
+Recipe: st; rwz; rf; st; rfz; rfz; b; rs; rf; st; f; rf; rf; b; f; f; rw; st; rwz; b;
+Area: 21362.78, Delay: 556.97, QoR: 11877272
+
+Rank 2:
+Recipe: st; rwz; rfz; st; rfz; rw; rfz; rw; f; b; f; rf; rw; rfz; rwz; rwz; st; st; st; b;
+Area: 20872.70, Delay: 574.69, QoR: 11980528
+
+Rank 3:
+Recipe: st; rfz; rs; rs; rs; rs; f; rw; f; st; st; b; rfz; st; rfz; rfz; rf; b; rf; st;
+Area: 20913.24, Delay: 583.94, QoR: 12192279
+
+----------------------------------------

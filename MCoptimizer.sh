@@ -3,30 +3,16 @@
 # Define paths
 ABC_PATH="./abc"
 DESIGNS_DIR="./bobs"
-OUTPUT_DIR="./mc_results"
-RECIPES_DIR="$OUTPUT_DIR/recipes"
-METRICS_DIR="$OUTPUT_DIR/metrics"
+RECIPES_DIR="./recipes"
+OUTPUT_DIR="./results"
+FINAL_CSV="$OUTPUT_DIR/combined_mc_results.csv"
+BEST_RECIPES="$OUTPUT_DIR/best_recipes.txt"
 
 # Create output directories
-mkdir -p $OUTPUT_DIR $RECIPES_DIR $METRICS_DIR
+mkdir -p "$OUTPUT_DIR"
 
 # Select designs
 DESIGNS=("simple_spi_orig.bench" "pci_orig.bench" "aes_secworks_orig.bench")
-
-# Define AIG simplification tools and their mappings
-declare -A tool_map
-tool_map[1]="b;"
-tool_map[2]="rw;"
-tool_map[3]="rf;"
-tool_map[4]="rs;"
-tool_map[5]="st;"
-tool_map[6]="rwz;"
-tool_map[7]="f;"
-tool_map[8]="rfz;"
-
-# Monte Carlo settings
-NUM_SAMPLES=500
-MAX_ITERATIONS=20
 
 # Function to evaluate a recipe using ABC
 evaluate_recipe() {
@@ -57,44 +43,45 @@ evaluate_recipe() {
     # Calculate QoR
     area_int=${area%.*}
     delay_int=${delay%.*}
-    qor=$((area_int * delay_int))
+    qor=$(echo "$area_int * $delay_int" | bc)
     
     echo "$area|$delay|$qor"
 }
 
+# Initialize CSV file with header
+echo "Design,Sample,Recipe,Area,Delay,QoR" > "$FINAL_CSV"
+
+# Initialize best recipes file
+> "$BEST_RECIPES"
+
 # Process each design
 for design in "${DESIGNS[@]}"; do
-    design_name=$(basename $design .bench)
+    design_name=$(basename "$design" .bench)
     echo "Processing $design_name with Monte Carlo..."
     
-    # Initialize tracking of best recipe
-    best_qor=999999999
-    best_area=999999999
-    best_delay=999999999
-    best_recipe=""
+    # Check if recipe file exists
+    recipe_file="$RECIPES_DIR/${design}_recipes.txt"
+    if [ ! -f "$recipe_file" ]; then
+        echo "Error: Recipe file $recipe_file not found!"
+        continue
+    fi
     
-    # Create metrics output file
-    metrics_file="$METRICS_DIR/${design_name}_mc_metrics.txt"
-    echo "Sample,Recipe,Area,Delay,QoR" > "$metrics_file"
+    # Read recipes into an array
+    mapfile -t recipes < "$recipe_file"
+    num_recipes=${#recipes[@]}
     
-    # Create recipes output file
-    recipes_file="$RECIPES_DIR/${design_name}_mc_recipes.txt"
-    > "$recipes_file"
+    echo "Found $num_recipes recipes for $design_name"
     
-    # Perform Monte Carlo sampling
-    for ((sample=1; sample<=NUM_SAMPLES; sample++)); do
-        # Generate random recipe
-		# Randomly choose between balance or strash as first command
-		if [ $((RANDOM % 2)) -eq 0 ]; then
-		    recipe="b;" # Start with balance
-		else
-		    recipe="st;" # Start with strash
-		fi
-
-    	for ((i=2; i<=MAX_ITERATIONS; i++)); do
-            tool_id=$((1 + RANDOM % 8))
-            recipe="$recipe ${tool_map[$tool_id]}"
-        done
+    # Initialize arrays to track top 3 best recipes
+    declare -a best_qors=( 999999999 999999999 999999999 )
+    declare -a best_areas=( 999999999 999999999 999999999 )
+    declare -a best_delays=( 999999999 999999999 999999999 )
+    declare -a best_recipes=( "" "" "" )
+    
+    # Process each recipe
+    for ((i=0; i<num_recipes; i++)); do
+        sample=$((i+1))
+        recipe="${recipes[$i]}"
         
         # Evaluate recipe
         echo "Sample $sample: Evaluating recipe..."
@@ -105,25 +92,46 @@ for design in "${DESIGNS[@]}"; do
         delay=${METRICS[1]}
         qor=${METRICS[2]}
         
-        # Record recipe and metrics
-        echo "$sample,\"$recipe\",$area,$delay,$qor" >> "$metrics_file"
-        echo "$recipe" >> "$recipes_file"
+        # Write directly to CSV
+        echo "$design_name,$sample,\"$recipe\",$area,$delay,$qor" >> "$FINAL_CSV"
         
-        # Update best recipe if better (inside the sample loop)
-        if (( qor < best_qor )); then
-            best_qor=$qor
-            best_area=$area
-            best_delay=$delay
-            best_recipe="$recipe"
-            echo "New best recipe found! Area: $best_area, Delay: $best_delay, QoR: $best_qor"
-        fi
-
+        # Update top 3 best recipes if better
+        for ((j=0; j<3; j++)); do
+            if (( qor < best_qors[j] )); then
+                # Shift existing entries down
+                for ((k=2; k>j; k--)); do
+                    best_qors[k]=${best_qors[k-1]}
+                    best_areas[k]=${best_areas[k-1]}
+                    best_delays[k]=${best_delays[k-1]}
+                    best_recipes[k]=${best_recipes[k-1]}
+                done
+                
+                # Insert new entry
+                best_qors[j]=$qor
+                best_areas[j]=$area
+                best_delays[j]=$delay
+                best_recipes[j]="$recipe"
+                
+                echo "New top-$((j+1)) recipe found! Area: $area, Delay: $delay, QoR: $qor"
+                break
+            fi
+        done
     done
     
-    echo "Best Monte Carlo recipe for $design_name:"
-    echo "$best_recipe"
-    echo "Area: $best_area, Delay: $best_delay, QoR: $best_qor"
+    # Write top 3 best recipes to file
+    echo "Top 3 Best Recipes for $design_name:" >> "$BEST_RECIPES"
+    for ((j=0; j<3; j++)); do
+        echo "Rank $((j+1)):" >> "$BEST_RECIPES"
+        echo "Recipe: ${best_recipes[j]}" >> "$BEST_RECIPES"
+        echo "Area: ${best_areas[j]}, Delay: ${best_delays[j]}, QoR: ${best_qors[j]}" >> "$BEST_RECIPES"
+        echo "" >> "$BEST_RECIPES"
+    done
+    echo "----------------------------------------" >> "$BEST_RECIPES"
+    
+    echo "Completed processing $design_name"
     echo ""
 done
 
-echo "Monte Carlo optimization completed. Results saved to $OUTPUT_DIR directory."
+echo "Monte Carlo evaluation completed. Results saved to:"
+echo "- Consolidated CSV: $FINAL_CSV"
+echo "- Best Recipes: $BEST_RECIPES"

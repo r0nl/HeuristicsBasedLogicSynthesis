@@ -31,7 +31,7 @@ generate_random_recipe() {
     fi
 
     for ((i=2; i<=20; i++)); do # Start from 2 since we already have first command
-        # Generate a random number between 1 and 10
+        # Generate a random number between 1 and 8
         tool_id=$((1 + RANDOM % 8))
         
         # Add the tool to the recipe

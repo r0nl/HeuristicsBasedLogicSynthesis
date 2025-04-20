@@ -52,11 +52,10 @@ run_abc_recipe() {
         echo "Warning: Could not extract area or delay information for design $design" >&2
     fi
 
-    # Calculate QoR (area * delay)
-    # If area or delay contain decimal points, truncate to integers for QoR calculation
+    # Calculate QoR
     area_int=${area%.*}
     delay_int=${delay%.*}
-    qor=$((area_int * delay_int))
+    qor=$(echo "$area_int * $delay_int" | bc)
 
     echo "$area|$delay|$qor"
 }
